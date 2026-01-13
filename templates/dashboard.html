@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f5f5f5;
+            padding: 20px;
+        }
+
+        .header {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        h1 {
+            color: #333;
+            font-size: 2em;
+        }
+
+        .upload-section {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .upload-section h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+
+        .file-upload {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+
+        .file-input-wrapper input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .file-input-label {
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            display: inline-block;
+            transition: background 0.3s;
+        }
+
+        .file-input-label:hover {
+            background: #0056b3;
+        }
+
+        .file-name {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0056b3;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .btn-upload {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-upload:hover {
+            background: #218838;
+        }
+
+        .btn-upload:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+        }
+
+        .landing-page-name {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .landing-page-name h2 {
+            color: #333;
+            font-size: 1.5em;
+            margin-bottom: 10px;
+        }
+
+        .dashboard-container {
+            background: white;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        #table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        th {
+            background: #343a40;
+            color: white;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+
+        tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #007bff;
+        }
+
+        .screenshot-area {
+            background: white;
+        }
+
+        .message {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 6px;
+            display: none;
+        }
+
+        .message.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Dashboard</h1>
+        <div class="controls">
+            <button class="btn-secondary" onclick="refreshData()">Refresh</button>
+            <button class="btn-primary" onclick="takeScreenshot()">Take Screenshot</button>
+        </div>
+    </div>
+
+    <div class="upload-section">
+        <h2>Upload Excel File</h2>
+        <div class="file-upload">
+            <div class="file-input-wrapper">
+                <input type="file" id="fileInput" accept=".xlsx,.xls" onchange="handleFileSelect(event)">
+                <label for="fileInput" class="file-input-label">Choose File</label>
+            </div>
+            <span class="file-name" id="fileName">No file chosen</span>
+            <button class="btn-upload" id="uploadBtn" onclick="uploadFile()" disabled>Upload</button>
+        </div>
+        <div id="uploadMessage" class="message"></div>
+    </div>
+
+    <div id="screenshot-area" class="screenshot-area">
+        <div id="landing-page-section" class="landing-page-name" style="display: none;">
+            <h2 id="landing-page-name">Loading...</h2>
+        </div>
+
+        <div class="dashboard-container">
+            <div id="table-container">
+                <div class="loading">No data available. Please upload an Excel file.</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedFile = null;
+
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                selectedFile = file;
+                document.getElementById('fileName').textContent = file.name;
+                document.getElementById('uploadBtn').disabled = false;
+            }
+        }
+
+        async function uploadFile() {
+            if (!selectedFile) {
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', selectedFile);
+
+            const uploadBtn = document.getElementById('uploadBtn');
+            const uploadMessage = document.getElementById('uploadMessage');
+            const originalText = uploadBtn.textContent;
+
+            uploadBtn.textContent = 'Uploading...';
+            uploadBtn.disabled = true;
+            uploadMessage.style.display = 'none';
+
+            try {
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    uploadMessage.className = 'message success';
+                    uploadMessage.textContent = 'File uploaded successfully!';
+                    uploadMessage.style.display = 'block';
+                    
+                    // Reset file input
+                    document.getElementById('fileInput').value = '';
+                    document.getElementById('fileName').textContent = 'No file chosen';
+                    selectedFile = null;
+                    uploadBtn.disabled = true;
+                    
+                    // Load the data
+                    loadData();
+                } else {
+                    uploadMessage.className = 'message error';
+                    uploadMessage.textContent = result.message || 'Error uploading file';
+                    uploadMessage.style.display = 'block';
+                    uploadBtn.disabled = false;
+                }
+            } catch (error) {
+                uploadMessage.className = 'message error';
+                uploadMessage.textContent = 'Error uploading file. Please try again.';
+                uploadMessage.style.display = 'block';
+                uploadBtn.disabled = false;
+            } finally {
+                uploadBtn.textContent = originalText;
+            }
+        }
+
+        async function loadData() {
+            const tableContainer = document.getElementById('table-container');
+            const landingPageSection = document.getElementById('landing-page-section');
+            const landingPageName = document.getElementById('landing-page-name');
+            
+            try {
+                const response = await fetch('/api/data');
+                const result = await response.json();
+                
+                if (result.success && result.data && result.data.length > 0) {
+                    // Try to find landing page name in the data
+                    // Check if there's a column named 'Landing Page Name' or similar
+                    const columns = Object.keys(result.data[0]);
+                    let landingPage = null;
+                    
+                    // Look for common column names for landing page
+                    const landingPageColumns = columns.filter(col => 
+                        col.toLowerCase().includes('landing') || 
+                        col.toLowerCase().includes('page')
+                    );
+                    
+                    if (landingPageColumns.length > 0) {
+                        landingPage = result.data[0][landingPageColumns[0]];
+                    }
+                    
+                    if (landingPage) {
+                        landingPageName.textContent = landingPage;
+                        landingPageSection.style.display = 'block';
+                    } else {
+                        landingPageSection.style.display = 'none';
+                    }
+                    
+                    // Create table
+                    let tableHTML = '<table><thead><tr>';
+                    columns.forEach(col => {
+                        tableHTML += `<th>${col}</th>`;
+                    });
+                    tableHTML += '</tr></thead><tbody>';
+                    
+                    result.data.forEach(row => {
+                        tableHTML += '<tr>';
+                        columns.forEach(col => {
+                            tableHTML += `<td>${row[col] || ''}</td>`;
+                        });
+                        tableHTML += '</tr>';
+                    });
+                    
+                    tableHTML += '</tbody></table>';
+                    tableContainer.innerHTML = tableHTML;
+                } else {
+                    landingPageSection.style.display = 'none';
+                    tableContainer.innerHTML = '<div class="no-data">No data available. Please upload an Excel file.</div>';
+                }
+            } catch (error) {
+                landingPageSection.style.display = 'none';
+                tableContainer.innerHTML = '<div class="no-data">Error loading data. Please try again.</div>';
+                console.error('Error loading data:', error);
+            }
+        }
+
+        function refreshData() {
+            loadData();
+        }
+
+        async function takeScreenshot() {
+            const screenshotArea = document.getElementById('screenshot-area');
+            const button = event.target;
+            const originalText = button.textContent;
+            
+            button.textContent = 'Taking Screenshot...';
+            button.disabled = true;
+            
+            try {
+                const canvas = await html2canvas(screenshotArea, {
+                    backgroundColor: '#f5f5f5',
+                    scale: 2,
+                    logging: false
+                });
+                
+                const link = document.createElement('a');
+                link.download = `dashboard-screenshot-${Date.now()}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            } catch (error) {
+                alert('Error taking screenshot. Please try again.');
+                console.error('Screenshot error:', error);
+            } finally {
+                button.textContent = originalText;
+                button.disabled = false;
+            }
+        }
+
+        // Load data on page load
+        loadData();
+    </script>
+</body>
+</html>
